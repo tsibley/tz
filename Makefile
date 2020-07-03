@@ -901,6 +901,7 @@ clean_misc:
 clean:		clean_misc
 		rm -fr *.dir tzdb-*/
 		rm -f *.zi $(TZS_NEW)
+		rm -fr fortunes/ fortunes-tz-*.tar.gz
 
 maintainer-clean: clean
 		@echo 'This command is intended for maintainers to use; it'
