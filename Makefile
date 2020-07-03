@@ -559,6 +559,8 @@ TZS_DEPS=	$(PRIMARY_YDATA) asctime.c localtime.c \
 EIGHT_YARDS = $(COMMON) $(DOCS) $(SOURCES) $(DATA) $(MISC) tzdata.zi
 ENCHILADA = $(EIGHT_YARDS) $(TZS)
 
+FORTUNES = $(PRIMARY_YDATA:%=fortunes/%)
+
 # Consult these files when deciding whether to rebuild the 'version' file.
 # This list is not the same as the output of 'git ls-files', since
 # .gitignore is not distributed.
@@ -615,9 +617,9 @@ INSTALL:	ALL install date.1
 		cp date '$(DESTDIR)$(BINDIR)/.'
 		cp -f date.1 '$(DESTDIR)$(MANDIR)/man1/.'
 
-install-fortunes: fortunes
+install-fortunes: $(FORTUNES)
 	mkdir -p '$(FORTUNEDIR)'
-	cp -fv fortunes/* '$(FORTUNEDIR)'
+	cp -fv $^ '$(FORTUNEDIR)'
 
 version:	$(VERSION_DEPS)
 		{ (type git) >/dev/null 2>&1 && \
@@ -668,10 +670,10 @@ leapseconds:	$(LEAP_DEPS)
 		  -f leapseconds.awk leap-seconds.list >$@.out
 		mv $@.out $@
 
-fortunes: $(PRIMARY_YDATA:%=fortunes/%)
+fortunes: $(FORTUNES)
 
-$(PRIMARY_YDATA:%=fortunes/%): fortunes/%: %
-	./mkfortunes $^ > $@
+$(FORTUNES): fortunes/%: %
+	./mkfortunes $< > $@
 	strfile $@
 
 # Arguments to pass to submakes of install_data.
