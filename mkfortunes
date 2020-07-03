@@ -1,0 +1,52 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use 5.020;
+use experimental qw< signatures >;
+
+my $GIT_REF = `git rev-parse --short HEAD 2>/dev/null` // "master";
+chomp $GIT_REF;
+
+my $note = "";
+my $lines = [];
+
+sub main() {
+    while (<<>>) {
+        # New note
+        if (/^# From/) {
+            emit($note, $ARGV, $lines);
+
+            $note = s/^# //r;
+            $lines = [$., $.];
+        }
+
+        # Continuation of note
+        elsif (/^#(?! (Rule|Zone))/ and $note) {
+            $note .= s/^# ?//r;
+            $lines->[1] = $.;
+        }
+
+        # End of current note
+        elsif (/^ \s* $/x and $note) {
+            emit($note, $ARGV, $lines);
+            $note = "";
+            $lines = [];
+        }
+    } continue {
+        # Reset line numbering for each file, instead of counting across files.
+        close ARGV if eof;
+    }
+}
+
+sub emit($note, $file = "-", $lines = []) {
+    return if not $note or $lines->[0] == $lines->[1];
+
+    my ($start, $end) = @$lines;
+    my $link = "https://github.com/eggert/tz/tree/$GIT_REF/$file#L$start-L$end";
+
+    say $note =~ s/\n+$//r;
+    say "\n", "  — <$link>" if $file ne "-";
+    say "%";
+}
+
+main();

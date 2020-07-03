@@ -119,6 +119,9 @@ MANDIR = $(TOPDIR)/$(USRSHAREDIR)/man
 # Library functions are put in an archive in LIBDIR.
 LIBDIR = $(TOPDIR)/$(USRDIR)/lib
 
+# Fortune files go in:
+FORTUNEDIR = $(TOPDIR)/$(USRSHAREDIR)/games/fortunes/tz
+
 
 # Types to try, as an alternative to time_t.
 TIME_T_ALTERNATIVES = $(TIME_T_ALTERNATIVES_HEAD) $(TIME_T_ALTERNATIVES_TAIL)
@@ -612,6 +615,10 @@ INSTALL:	ALL install date.1
 		cp date '$(DESTDIR)$(BINDIR)/.'
 		cp -f date.1 '$(DESTDIR)$(MANDIR)/man1/.'
 
+install-fortunes: fortunes
+	mkdir -p '$(FORTUNEDIR)'
+	cp -fv fortunes/* '$(FORTUNEDIR)'
+
 version:	$(VERSION_DEPS)
 		{ (type git) >/dev/null 2>&1 && \
 		  V=`git describe --match '[0-9][0-9][0-9][0-9][a-z]*' \
@@ -660,6 +667,12 @@ leapseconds:	$(LEAP_DEPS)
 		$(AWK) -v EXPIRES_LINE=$(EXPIRES_LINE) \
 		  -f leapseconds.awk leap-seconds.list >$@.out
 		mv $@.out $@
+
+fortunes: $(PRIMARY_YDATA:%=fortunes/%)
+
+$(PRIMARY_YDATA:%=fortunes/%): fortunes/%: %
+	./mkfortunes $^ > $@
+	strfile $@
 
 # Arguments to pass to submakes of install_data.
 # They can be overridden by later submake arguments.
@@ -1117,6 +1130,7 @@ zic.o:		private.h tzfile.h version.h
 .PHONY: check check_time_t_alternatives
 .PHONY: check_web check_zishrink
 .PHONY: clean clean_misc dummy.zd force_tzs
+.PHONY: fortunes
 .PHONY: install install_data maintainer-clean names
 .PHONY: posix_only posix_packrat posix_right public
 .PHONY: rearguard_signatures rearguard_signatures_version
