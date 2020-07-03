@@ -559,7 +559,7 @@ TZS_DEPS=	$(PRIMARY_YDATA) asctime.c localtime.c \
 EIGHT_YARDS = $(COMMON) $(DOCS) $(SOURCES) $(DATA) $(MISC) tzdata.zi
 ENCHILADA = $(EIGHT_YARDS) $(TZS)
 
-FORTUNES = $(PRIMARY_YDATA:%=fortunes/%)
+FORTUNES = $(PRIMARY_YDATA:%=fortunes/tz/%)
 
 # Consult these files when deciding whether to rebuild the 'version' file.
 # This list is not the same as the output of 'git ls-files', since
@@ -672,9 +672,13 @@ leapseconds:	$(LEAP_DEPS)
 
 fortunes: $(FORTUNES)
 
-$(FORTUNES): fortunes/%: %
+$(FORTUNES): fortunes/tz/%: %
+	mkdir -p fortunes/tz
 	./mkfortunes $< > $@
 	strfile $@
+
+fortunes-release: fortunes version
+	cd fortunes && tar czvpf ../fortunes-tz-`cat ../version`.tar.gz tz/*
 
 # Arguments to pass to submakes of install_data.
 # They can be overridden by later submake arguments.
