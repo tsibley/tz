@@ -617,7 +617,7 @@ INSTALL:	ALL install date.1
 		cp date '$(DESTDIR)$(BINDIR)/.'
 		cp -f date.1 '$(DESTDIR)$(MANDIR)/man1/.'
 
-install-fortunes: $(FORTUNES)
+install-fortunes: $(FORTUNES) $(FORTUNES:=.dat)
 	mkdir -p '$(FORTUNEDIR)'
 	cp -fv $^ '$(FORTUNEDIR)'
 
@@ -670,12 +670,14 @@ leapseconds:	$(LEAP_DEPS)
 		  -f leapseconds.awk leap-seconds.list >$@.out
 		mv $@.out $@
 
-fortunes: $(FORTUNES)
+fortunes: $(FORTUNES) $(FORTUNES:=.dat)
 
 $(FORTUNES): fortunes/tz/%: %
 	mkdir -p fortunes/tz
 	./mkfortunes $< > $@
-	strfile $@
+
+fortunes/tz/%.dat: fortunes/tz/%
+	strfile $<
 
 fortunes-release: fortunes version
 	cd fortunes && tar czvpf ../fortunes-tz-`cat ../version`.tar.gz tz/*
