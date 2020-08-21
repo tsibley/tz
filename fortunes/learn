@@ -1,8 +1,13 @@
 #!/usr/bin/env perl
+use utf8;
 use strict;
 use warnings;
 use 5.020;
+use open qw< :std :encoding(UTF-8) >;
 use experimental qw< signatures >;
+use JSON::PP;
+
+my $JSON = JSON::PP->new->canonical;
 
 my $GIT_REF = `git rev-parse --short HEAD 2>/dev/null` // "master";
 chomp $GIT_REF;
@@ -44,9 +49,12 @@ sub emit($note, $file = "-", $lines = []) {
     my ($start, $end) = @$lines;
     my $link = "https://github.com/eggert/tz/tree/$GIT_REF/$file#L$start-L$end";
 
-    say $note =~ s/\n+$//r;
-    say "\n", "  — <$link>" if $file ne "-";
-    say "%";
+    say $JSON->encode({
+        note => $note =~ s/\n+$//r,
+        link => $file ne "-" ? $link : undef,
+        file => $file,
+        lines => $lines,
+    });
 }
 
 main();

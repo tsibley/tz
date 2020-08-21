@@ -1,0 +1,17 @@
+#!/usr/bin/env perl
+use utf8;
+use strict;
+use warnings;
+use 5.020;
+use open qw< :std :encoding(UTF-8) >;
+use experimental qw< signatures >;
+use JSON::PP;
+
+my $JSON = JSON::PP->new;
+
+while (<<>>) {
+    my $fortune = $JSON->decode($_);
+    say $fortune->{note};
+    say "\n", "  — <$fortune->{link}>" if $fortune->{link};
+    say "%";
+}

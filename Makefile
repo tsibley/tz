@@ -672,9 +672,12 @@ leapseconds:	$(LEAP_DEPS)
 
 fortunes: $(FORTUNES) $(FORTUNES:=.dat)
 
-$(FORTUNES): fortunes/tz/%: %
+fortunes/tz/%.ndjson: %
 	mkdir -p fortunes/tz
-	./mkfortunes $< > $@
+	./fortunes/learn $< > $@
+
+$(FORTUNES): fortunes/tz/%: fortunes/tz/%.ndjson
+	./fortunes/tell $< > $@
 
 fortunes/tz/%.dat: fortunes/tz/%
 	strfile $<
