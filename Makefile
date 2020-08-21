@@ -682,6 +682,10 @@ $(FORTUNES): fortunes/tz/%: fortunes/tz/%.ndjson
 fortunes/tz/%.dat: fortunes/tz/%
 	strfile $<
 
+fortunes/tz.db: $(FORTUNES:=.ndjson)
+	rm -vf $@
+	cat $^ | sqlite-utils insert $@ fortunes - --nl
+
 fortunes-release: fortunes version
 	cd fortunes && tar czvpf ../fortunes-tz-`cat ../version`.tar.gz tz/*
 
