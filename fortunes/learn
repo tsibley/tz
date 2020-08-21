@@ -5,6 +5,7 @@ use warnings;
 use 5.020;
 use open qw< :std :encoding(UTF-8) >;
 use experimental qw< signatures >;
+use English qw< %LAST_PAREN_MATCH >;
 use JSON::PP;
 
 my $JSON = JSON::PP->new->canonical;
@@ -49,12 +50,35 @@ sub emit($note, $file = "-", $lines = []) {
     my ($start, $end) = @$lines;
     my $link = "https://github.com/eggert/tz/tree/$GIT_REF/$file#L$start-L$end";
 
+    my ($from, $date) = parse_attribution($note);
+
+    $from =~ s/\n+/ /g
+        if defined $from;
+
     say $JSON->encode({
         note => $note =~ s/\n+$//r,
+        from => $from,
+        date => $date,
         link => $file ne "-" ? $link : undef,
         file => $file,
         lines => $lines,
     });
+}
+
+sub parse_attribution($note) {
+    my $isodate = qr/\d{4}-\d{2}-\d{2}/a;
+    my @styles  = (
+        qr/\AFrom \s+ (?<from>(?s:.+?))   \s+ \((?<date>$isodate)\) : /x,
+        qr/\AFrom \s+ (?<from>.+)         \s+ \((?<date>$isodate)\)   /x,
+        qr/\AFrom \s+ (?<from>.+?) ,?     \s+   (?<date>$isodate)     /x,
+        qr/\AFrom \s+ (?<from>.+?) :? $/xm,
+    );
+
+    for my $style (@styles) {
+        return @LAST_PAREN_MATCH{qw<from date>}
+            if $note =~ /$style/;
+    }
+    return (undef, undef);
 }
 
 main();
